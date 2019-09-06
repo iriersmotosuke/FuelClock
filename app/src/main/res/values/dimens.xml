@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="tvSizeLarge">75sp</dimen>
+    <dimen name="tvSizeMiddle">50sp</dimen>
+    <dimen name="tvSizeSmall">25sp</dimen>
+</resources>

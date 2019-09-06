@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">FuelClock</string>
+    <string name="currentTime">00:00:00</string>
+    <string name="estimatedFuelConsumption">0.00</string>
+    <string name="labelStartTime">スタート時刻</string>
+    <string name="labelTimeNow">現在時刻</string>
+    <string name="labelExtFuel">消費燃料(予定)</string>
+    <string name="unitEstFuel">L</string>
+    <string name="labelFinishTime">フィニッシュ時刻</string>
+    <string name="etDefault_StartTime">13:00</string>
+    <string name="etDefaultFinishTime">15:30</string>
+</resources>
