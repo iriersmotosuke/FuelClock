@@ -7,18 +7,6 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/tvEstFuel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"
-        android:text="@string/estimatedFuelConsumption"
-        android:textAlignment="textEnd"
-        android:textSize="@dimen/tvSizeLarge"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/tvTimeNow" />
-
-    <TextView
         android:id="@+id/tvLabel_TimeNow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -35,10 +23,33 @@
         android:layout_marginStart="25dp"
         android:text="@string/currentTime"
         android:textAlignment="textEnd"
+        android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeLarge"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvLabel_TimeNow" />
+
+    <TextView
+        android:id="@+id/tvLabel_EstFuel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/labelExtFuel"
+        android:textSize="@dimen/tvSizeSmall"
+        app:layout_constraintBottom_toTopOf="@+id/tvEstFuel"
+        app:layout_constraintStart_toStartOf="@+id/tvTimeNow" />
+
+    <TextView
+        android:id="@+id/tvEstFuel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="25dp"
+        android:text="@string/estimatedFuelConsumption"
+        android:textAlignment="textEnd"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/tvSizeLarge"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/tvTimeNow" />
 
     <TextView
         android:id="@+id/tvUnit_EstFuel"
@@ -51,6 +62,15 @@
         app:layout_constraintBaseline_toBaselineOf="@+id/tvEstFuel"
         app:layout_constraintStart_toEndOf="@+id/tvEstFuel" />
 
+    <TextView
+        android:id="@+id/tvLabel_StartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:text="@string/labelStartTime"
+        android:textSize="@dimen/tvSizeSmall"
+        app:layout_constraintStart_toStartOf="@+id/etStartTime"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/etStartTime"
@@ -64,9 +84,20 @@
         android:inputType="time"
         android:text="@string/etDefault_StartTime"
         android:textAlignment="center"
+        android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvLabel_StartTime" />
+
+    <TextView
+        android:id="@+id/tvLabel_FinishTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:text="@string/labelFinishTime"
+        android:textSize="@dimen/tvSizeSmall"
+        app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
+        app:layout_constraintTop_toBottomOf="@+id/etStartTime" />
 
     <EditText
         android:id="@+id/etFinishTime"
@@ -80,37 +111,57 @@
         android:inputType="time"
         android:text="@string/etDefaultFinishTime"
         android:textAlignment="center"
+        android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
-        app:layout_constraintTop_toBottomOf="@+id/tvLabel_StartTime3" />
+        app:layout_constraintTop_toBottomOf="@+id/tvLabel_FinishTime" />
 
-        <TextView
-            android:id="@+id/tvLabel_StartTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
-            android:text="@string/labelStartTime"
-            android:textSize="@dimen/tvSizeSmall"
-            app:layout_constraintStart_toStartOf="@+id/etStartTime"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/tvLabel_FullTank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:text="@string/labelFullTank"
+        android:textSize="@dimen/tvSizeSmall"
+        app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
+        app:layout_constraintTop_toBottomOf="@+id/etFinishTime" />
 
-        <TextView
-            android:id="@+id/tvLabel_StartTime3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            android:text="@string/labelFinishTime"
-            android:textSize="@dimen/tvSizeSmall"
-            app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
-            app:layout_constraintTop_toBottomOf="@+id/etStartTime" />
+    <EditText
+        android:id="@+id/etFullTank"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="25dp"
+        android:cursorVisible="false"
+        android:ems="10"
+        android:focusableInTouchMode="false"
+        android:imeOptions="actionDone"
+        android:inputType="number"
+        android:text="@string/etDefaultFullTank"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/tvSizeSmall"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
+        app:layout_constraintTop_toBottomOf="@+id/tvLabel_FullTank" />
 
-        <TextView
-            android:id="@+id/tvLabel_EstFuel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/labelExtFuel"
-            android:textSize="@dimen/tvSizeSmall"
-            app:layout_constraintBottom_toTopOf="@+id/tvEstFuel"
-            app:layout_constraintStart_toStartOf="@+id/tvTimeNow" />
+    <TextClock
+        android:id="@+id/tcClock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format12Hour="hh:mm:ss"
+        android:format24Hour="HH:mm:ss"
+        android:text="@string/currentTime"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/tvSizeSmall"
+        android:textStyle="bold"
+        android:timeZone="GMT+900"
+        app:layout_constraintBottom_toTopOf="@+id/tvLabel_EstFuel"
+        app:layout_constraintEnd_toEndOf="@+id/tvTimeNow"
+        app:layout_constraintStart_toStartOf="@+id/tvLabel_TimeNow"
+        app:layout_constraintTop_toBottomOf="@+id/tvTimeNow" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

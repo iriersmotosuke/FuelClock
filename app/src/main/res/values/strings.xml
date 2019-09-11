@@ -9,4 +9,6 @@
     <string name="labelFinishTime">フィニッシュ時刻</string>
     <string name="etDefault_StartTime">13:00</string>
     <string name="etDefaultFinishTime">15:30</string>
+    <string name="labelFullTank">満タン容量(L)</string>
+    <string name="etDefaultFullTank">40.00</string>
 </resources>
