@@ -2,9 +2,13 @@ package com.example.fuelclock;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -14,11 +18,16 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String PREF_FILE_NAME = "com.example.fuelclock.FuelClockPrefs";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences sharedPref = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler handler = new Handler();
@@ -79,6 +88,19 @@ public class MainActivity extends AppCompatActivity {
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
+            }
+        });
+        // 値を変更したら保存する
+        inputStartTime.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count){
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
