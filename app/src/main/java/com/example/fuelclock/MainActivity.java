@@ -29,11 +29,12 @@ public class MainActivity extends AppCompatActivity {
             EditText inputStartTime = findViewById(R.id.etStartTime);
             EditText inputFinishTime = findViewById(R.id.etFinishTime);
             EditText inputFullTank = findViewById(R.id.etFullTank);
-            Date dateTimeNow = new Date();
+            //Date dateTimeNow = new Date();
             SimpleDateFormat sdf_HHmm = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_HHmmss = new SimpleDateFormat("HH:mm:ss");
             Date dateSatrtTime = new Date();
             Date dateFinishTime = new Date();
+            TextView indicaterTimeNow = findViewById(R.id.tvTimeNow);
 
             @Override
             public void run() {
@@ -50,17 +51,21 @@ public class MainActivity extends AppCompatActivity {
                 String sFullTank = inputFullTank.getText().toString();
                 dFullTank = Double.parseDouble(sFullTank);
 
-                // 現在時刻を取得
-                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-                dateTimeNow.setTime(cal.get(Calendar.HOUR) * 3600000 + cal.get(Calendar.MINUTE) * 60000 + cal.get(Calendar.SECOND) * 1000);
-
                 // 現在時刻を表示
-                TextView indicaterTimeNow = findViewById(R.id.tvTimeNow);
-                indicaterTimeNow.setText(sdf_HHmmss.format(dateTimeNow));
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));// 現在時刻を取得
+                indicaterTimeNow.setText(sdf_HHmmss.format(cal.getTime()));
 
                 // 予定燃料消費量を再計算・表示
-                dEstLPM+=0.1;
-                indicaterEstFuel.setText(String.format("%1$.2f", dEstLPM));
+                long lTimeNowHour = cal.get(Calendar.HOUR_OF_DAY); // GMT + TimeZoneOffset, Today
+                long lTimeNowMin = cal.get(Calendar.MINUTE);
+                long lTimeNowSec = cal.get(Calendar.SECOND);
+                long lTimeNowTZoffset = cal.get(Calendar.ZONE_OFFSET);
+                long lTimeNow = (lTimeNowHour * 3600 + lTimeNowMin * 60 + lTimeNowSec) * 1000; // GMT + TimeZoneOffset, 1970/01/01
+                long lStartTime = dateSatrtTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
+                long lFinishTime = dateFinishTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
+                dEstLPM = dFullTank / (lFinishTime - lStartTime);
+                double dEstFuel = dEstLPM * (lTimeNow - lStartTime);
+                indicaterEstFuel.setText(String.format("%1$.2f", dEstFuel));
                 handler.postDelayed(this, 1000);
             }
         };
@@ -88,7 +93,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        // 満タン容量(L)をクリックすると入力モードに入る
+        EditText inputFullTank = findViewById(R.id.etFullTank);
+        inputFullTank.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.setFocusable(true);
+                view.setFocusableInTouchMode(true);
+                view.requestFocus();
+            }
+        });
 
     }
 }

@@ -93,7 +93,7 @@
         android:id="@+id/tvLabel_FinishTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="15dp"
         android:text="@string/labelFinishTime"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
@@ -121,7 +121,7 @@
         android:id="@+id/tvLabel_FullTank"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="15dp"
         android:text="@string/labelFullTank"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
@@ -136,7 +136,7 @@
         android:ems="10"
         android:focusableInTouchMode="false"
         android:imeOptions="actionDone"
-        android:inputType="number"
+        android:inputType="numberDecimal"
         android:text="@string/etDefaultFullTank"
         android:textAlignment="center"
         android:textColor="@android:color/white"
@@ -146,7 +146,7 @@
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
         app:layout_constraintTop_toBottomOf="@+id/tvLabel_FullTank" />
 
-    <TextClock
+    <!--TextClock
         android:id="@+id/tcClock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -161,7 +161,7 @@
         app:layout_constraintBottom_toTopOf="@+id/tvLabel_EstFuel"
         app:layout_constraintEnd_toEndOf="@+id/tvTimeNow"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_TimeNow"
-        app:layout_constraintTop_toBottomOf="@+id/tvTimeNow" />
+        app:layout_constraintTop_toBottomOf="@+id/tvTimeNow" /-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
