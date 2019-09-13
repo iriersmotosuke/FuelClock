@@ -27,7 +27,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SharedPreferences sharedPref = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+        // 設定値を読み込む
+        SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editorPrefs = spPrefs.edit();
+        String sStartTime = spPrefs.getString("StartTime", "13:00");
+        String sFinishTime = spPrefs.getString("FinishTime", "15:30");
+        String sFullTank = spPrefs.getString("FullTank", "40.00");
+        EditText inputStartTime = findViewById(R.id.etStartTime);
+        EditText inputFinishTime = findViewById(R.id.etFinishTime);
+        EditText inputFullTank = findViewById(R.id.etFullTank);
+        inputStartTime.setText(sStartTime);
+        inputFinishTime.setText(sFinishTime);
+        inputFullTank.setText(sFullTank);
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler handler = new Handler();
@@ -54,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
                     dateSatrtTime = sdf_HHmm.parse(sStartTime);
                     dateFinishTime = sdf_HHmm.parse(sFinishTime);
                 } catch (Exception e) {
-                    dateSatrtTime.setTime(0);
-                    dateFinishTime.setTime(0);
+                    TextView indicaterMessage =findViewById(R.id.tvMessage);
+                    indicaterMessage.setText("MESSAGE");
                 }
                 String sFullTank = inputFullTank.getText().toString();
                 dFullTank = Double.parseDouble(sFullTank);
@@ -100,7 +111,9 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void afterTextChanged(Editable s) {
-
+                SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editorPrefs = spPrefs.edit();
+                editorPrefs.putString("StartTime",s.toString());
             }
         });
 
