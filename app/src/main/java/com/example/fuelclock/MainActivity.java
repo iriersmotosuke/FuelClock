@@ -15,7 +15,10 @@ import android.widget.TextView;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
+
+import static java.util.Locale.JAPAN;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,17 +31,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // 設定値を読み込む
-        SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editorPrefs = spPrefs.edit();
+        final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+        final SharedPreferences.Editor editorPrefs = spPrefs.edit();
         String sStartTime = spPrefs.getString("StartTime", "13:00");
         String sFinishTime = spPrefs.getString("FinishTime", "15:30");
         String sFullTank = spPrefs.getString("FullTank", "40.00");
-        EditText inputStartTime = findViewById(R.id.etStartTime);
-        EditText inputFinishTime = findViewById(R.id.etFinishTime);
-        EditText inputFullTank = findViewById(R.id.etFullTank);
+        final EditText inputStartTime = findViewById(R.id.etStartTime);
+        final EditText inputFinishTime = findViewById(R.id.etFinishTime);
+        final EditText inputFullTank = findViewById(R.id.etFullTank);
         inputStartTime.setText(sStartTime);
         inputFinishTime.setText(sFinishTime);
         inputFullTank.setText(sFullTank);
+        final TextView indicaterMessage =findViewById(R.id.tvMessage);
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler handler = new Handler();
@@ -46,10 +50,6 @@ public class MainActivity extends AppCompatActivity {
             double dEstLPM = 0;
             double dFullTank;
             TextView indicaterEstFuel = findViewById(R.id.tvEstFuel);
-            EditText inputStartTime = findViewById(R.id.etStartTime);
-            EditText inputFinishTime = findViewById(R.id.etFinishTime);
-            EditText inputFullTank = findViewById(R.id.etFullTank);
-            //Date dateTimeNow = new Date();
             SimpleDateFormat sdf_HHmm = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_HHmmss = new SimpleDateFormat("HH:mm:ss");
             Date dateSatrtTime = new Date();
@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void run() {
+                indicaterMessage.setText("");
                 // スタート・フィニッシュ時刻を取得
                 String sStartTime = inputStartTime.getText().toString();
                 String sFinishTime = inputFinishTime.getText().toString();
@@ -65,9 +66,9 @@ public class MainActivity extends AppCompatActivity {
                     dateSatrtTime = sdf_HHmm.parse(sStartTime);
                     dateFinishTime = sdf_HHmm.parse(sFinishTime);
                 } catch (Exception e) {
-                    TextView indicaterMessage =findViewById(R.id.tvMessage);
-                    indicaterMessage.setText("MESSAGE");
+                    indicaterMessage.setText(R.string.err_format_HHmm);
                 }
+                // 満タン容量(L)を取得
                 String sFullTank = inputFullTank.getText().toString();
                 dFullTank = Double.parseDouble(sFullTank);
 
@@ -85,14 +86,13 @@ public class MainActivity extends AppCompatActivity {
                 long lFinishTime = dateFinishTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
                 dEstLPM = dFullTank / (lFinishTime - lStartTime);
                 double dEstFuel = dEstLPM * (lTimeNow - lStartTime);
-                indicaterEstFuel.setText(String.format("%1$.2f", dEstFuel));
+                indicaterEstFuel.setText(String.format(Locale.JAPAN, "%1$.2f", dEstFuel));
                 handler.postDelayed(this, 1000);
             }
         };
         handler.post(runnable);
 
         // スタート時刻をクリックすると入力モードに入る
-        EditText inputStartTime = findViewById(R.id.etStartTime);
         inputStartTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -111,14 +111,12 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void afterTextChanged(Editable s) {
-                SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editorPrefs = spPrefs.edit();
                 editorPrefs.putString("StartTime",s.toString());
+                editorPrefs.apply();
             }
         });
 
         // フィニッシュ時刻をクリックすると入力モードに入る
-        EditText inputFinishTime = findViewById(R.id.etFinishTime);
         inputFinishTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -127,15 +125,42 @@ public class MainActivity extends AppCompatActivity {
                 view.requestFocus();
             }
         });
+        // 値を変更したら保存する
+        inputFinishTime.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count){
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                editorPrefs.putString("FinishTime",s.toString());
+                editorPrefs.apply();
+            }
+        });
 
         // 満タン容量(L)をクリックすると入力モードに入る
-        EditText inputFullTank = findViewById(R.id.etFullTank);
         inputFullTank.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
+            }
+        });
+        // 値を変更したら保存する
+        inputFullTank.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count){
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                editorPrefs.putString("FullTank",s.toString());
+                editorPrefs.apply();
             }
         });
 
