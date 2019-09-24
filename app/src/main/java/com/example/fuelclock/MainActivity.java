@@ -13,6 +13,14 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -45,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
         final TextView indicaterMessage =findViewById(R.id.tvMessage);
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
-        final Handler handler = new Handler();
-        final Runnable runnable = new Runnable() {
+        final Handler hdlrFuelClock = new Handler();
+        final Runnable runFuelClock = new Runnable() {
             double dEstLPM = 0;
             double dFullTank;
             TextView indicaterEstFuel = findViewById(R.id.tvEstFuel);
@@ -87,10 +95,56 @@ public class MainActivity extends AppCompatActivity {
                 dEstLPM = dFullTank / (lFinishTime - lStartTime);
                 double dEstFuel = dEstLPM * (lTimeNow - lStartTime);
                 indicaterEstFuel.setText(String.format(Locale.JAPAN, "%1$.2f", dEstFuel));
-                handler.postDelayed(this, 1000);
+                hdlrFuelClock.postDelayed(this, 1000);
             }
         };
-        handler.post(runnable);
+        hdlrFuelClock.post(runFuelClock);
+
+        // 1分ごとに設定値をGAS WebAppから取得するデーモンスレッド
+        final Handler hdlrFuelClockRemote = new Handler();
+        final Runnable runFuelClockRemote = new Runnable(){
+            @Override
+            public void run() {
+                String result ="";
+                HttpURLConnection con = null;
+                InputStream is = null;
+                String sUrl = "https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam";
+                try {
+                    URL url = new URL(sUrl);
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("GET");
+                    con.connect();
+                    is = con.getInputStream();
+                    result = is.toString();
+                }catch(MalformedURLException ex){
+
+                }catch(IOException ex){
+
+                }finally{
+                    if(con != null){
+                        con.disconnect();
+                    }
+                    if(is != null){
+                        try{
+                            is.close();
+                        }catch(IOException ex){
+
+                        }
+                    }
+                }
+                try {
+                    JSONObject json = new JSONObject(result);
+                    editorPrefs.putString("StartTime",json.getString("start"));
+                    editorPrefs.putString("FinishTime",json.getString("finish"));
+                    editorPrefs.apply();
+                }catch(JSONException ex){
+
+                }
+                // 1分間隔でポーリング
+                hdlrFuelClockRemote.postDelayed(this, 60000);
+            }
+        };
+        hdlrFuelClockRemote.post(runFuelClockRemote);
 
         // スタート時刻をクリックすると入力モードに入る
         inputStartTime.setOnClickListener(new View.OnClickListener() {
@@ -163,6 +217,5 @@ public class MainActivity extends AppCompatActivity {
                 editorPrefs.apply();
             }
         });
-
     }
 }
