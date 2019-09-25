@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -51,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
         inputFinishTime.setText(sFinishTime);
         inputFullTank.setText(sFullTank);
         final TextView indicaterMessage =findViewById(R.id.tvMessage);
+
+        // 1分ごとに設定値をWebAppから取得
+        FuelClockRemote fcRemote = new FuelClockRemote();
+        fcRemote.execute();
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
@@ -100,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         };
         hdlrFuelClock.post(runFuelClock);
 
+/*
         // 1分ごとに設定値をGAS WebAppから取得するデーモンスレッド
         final Handler hdlrFuelClockRemote = new Handler();
         final Runnable runFuelClockRemote = new Runnable(){
@@ -145,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         hdlrFuelClockRemote.post(runFuelClockRemote);
+*/
 
         // スタート時刻をクリックすると入力モードに入る
         inputStartTime.setOnClickListener(new View.OnClickListener() {
@@ -217,5 +224,57 @@ public class MainActivity extends AppCompatActivity {
                 editorPrefs.apply();
             }
         });
+    }//onCreate()
+
+    // 1分ごとに設定値をGAS WebAppから取得するデーモンスレッド
+    private class FuelClockRemote extends AsyncTask<String , String , String > {
+
+        public FuelClockRemote(){
+
+        }
+
+        @Override
+        public String doInBackground(String... strings) {
+            final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+            final SharedPreferences.Editor editorPrefs = spPrefs.edit();
+            String result ="";
+            HttpURLConnection con = null;
+            InputStream is = null;
+            String sUrl = "https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam";
+            try {
+                URL url = new URL(sUrl);
+                con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                con.connect();
+                is = con.getInputStream();
+                result = is.toString();
+            }catch(MalformedURLException ex){
+
+            }catch(IOException ex){
+
+            }finally{
+                if(con != null){
+                    con.disconnect();
+                }
+                if(is != null){
+                    try{
+                        is.close();
+                    }catch(IOException ex){
+
+                    }
+                }
+            }
+            try {
+                JSONObject json = new JSONObject(result);
+                editorPrefs.putString("StartTime",json.getString("start"));
+                editorPrefs.putString("FinishTime",json.getString("finish"));
+                editorPrefs.apply();
+            }catch(JSONException ex){
+
+            }
+            return null;
+        }
     }
+
+
 }
