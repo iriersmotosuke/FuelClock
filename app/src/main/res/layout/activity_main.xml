@@ -42,7 +42,7 @@
         android:id="@+id/tvEstFuel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"
+        android:layout_marginBottom="50dp"
         android:text="@string/estimatedFuelConsumption"
         android:textAlignment="textEnd"
         android:textColor="@android:color/white"
@@ -145,6 +145,17 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
         app:layout_constraintTop_toBottomOf="@+id/tvLabel_FullTank" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/tvSizeSmall"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!--TextClock
         android:id="@+id/tcClock"
