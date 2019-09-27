@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -19,8 +20,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
         inputFullTank.setText(sFullTank);
         final TextView indicaterMessage =findViewById(R.id.tvMessage);
 
-        // 1分ごとに設定値をWebAppから取得
-        FuelClockRemote fcRemote = new FuelClockRemote();
-        fcRemote.execute();
+        // 設定値をWebAppから取得
+        FuelClockRemoteGet fcRemoteGet = new FuelClockRemoteGet();
+        fcRemoteGet.execute();
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
@@ -90,11 +93,14 @@ public class MainActivity extends AppCompatActivity {
                 indicaterTimeNow.setText(sdf_HHmmss.format(cal.getTime()));
 
                 // 予定燃料消費量を再計算・表示
+                /*
                 long lTimeNowHour = cal.get(Calendar.HOUR_OF_DAY); // GMT + TimeZoneOffset, Today
                 long lTimeNowMin = cal.get(Calendar.MINUTE);
                 long lTimeNowSec = cal.get(Calendar.SECOND);
-                long lTimeNowTZoffset = cal.get(Calendar.ZONE_OFFSET);
                 long lTimeNow = (lTimeNowHour * 3600 + lTimeNowMin * 60 + lTimeNowSec) * 1000; // GMT + TimeZoneOffset, 1970/01/01
+                */
+                long lTimeNowTZoffset = cal.get(Calendar.ZONE_OFFSET);
+                long lTimeNow = (cal.get(Calendar.HOUR_OF_DAY) * 3600 + cal.get(Calendar.MINUTE) * 60 + cal.get(Calendar.SECOND)) * 1000; // GMT + TimeZoneOffset, 1970/01/01
                 long lStartTime = dateSatrtTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
                 long lFinishTime = dateFinishTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
                 dEstLPM = dFullTank / (lFinishTime - lStartTime);
@@ -104,54 +110,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         hdlrFuelClock.post(runFuelClock);
-
-/*
-        // 1分ごとに設定値をGAS WebAppから取得するデーモンスレッド
-        final Handler hdlrFuelClockRemote = new Handler();
-        final Runnable runFuelClockRemote = new Runnable(){
-            @Override
-            public void run() {
-                String result ="";
-                HttpURLConnection con = null;
-                InputStream is = null;
-                String sUrl = "https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam";
-                try {
-                    URL url = new URL(sUrl);
-                    con = (HttpURLConnection) url.openConnection();
-                    con.setRequestMethod("GET");
-                    con.connect();
-                    is = con.getInputStream();
-                    result = is.toString();
-                }catch(MalformedURLException ex){
-
-                }catch(IOException ex){
-
-                }finally{
-                    if(con != null){
-                        con.disconnect();
-                    }
-                    if(is != null){
-                        try{
-                            is.close();
-                        }catch(IOException ex){
-
-                        }
-                    }
-                }
-                try {
-                    JSONObject json = new JSONObject(result);
-                    editorPrefs.putString("StartTime",json.getString("start"));
-                    editorPrefs.putString("FinishTime",json.getString("finish"));
-                    editorPrefs.apply();
-                }catch(JSONException ex){
-
-                }
-                // 1分間隔でポーリング
-                hdlrFuelClockRemote.postDelayed(this, 60000);
-            }
-        };
-        hdlrFuelClockRemote.post(runFuelClockRemote);
-*/
 
         // スタート時刻をクリックすると入力モードに入る
         inputStartTime.setOnClickListener(new View.OnClickListener() {
@@ -226,10 +184,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }//onCreate()
 
-    // 1分ごとに設定値をGAS WebAppから取得するデーモンスレッド
-    private class FuelClockRemote extends AsyncTask<String , String , String > {
+    // 設定値をGAS WebAppから取得する非同期タスク
+    private class FuelClockRemoteGet extends AsyncTask<String , String , String > {
 
-        public FuelClockRemote(){
+        public FuelClockRemoteGet(){
 
         }
 
@@ -274,7 +232,60 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
+    }// FuelClockRemoteGet
+
+    // 設定値をGAS WebAppに投稿する非同期タスク
+    private class FuelClockRemotePost extends AsyncTask<String , String , String > {
+
+        public FuelClockRemotePost(){
+
+        }
+
+        @Override
+        public String doInBackground(String... strings) {
+            String sPostData ="text_statime=12:45&text_fintime=15:15";
+            HttpURLConnection con = null;
+            String sUrl = "https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec";
+            InputStream is = null;
+            String result = "";
+            try {
+                URL url = new URL(sUrl);
+                con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("POST");
+                con.setConnectTimeout(5000);
+                con.setReadTimeout(5000);
+                con.setDoOutput(true);
+                OutputStream os = con.getOutputStream();
+                os.write(sPostData.getBytes());
+                os.flush();
+                os.close();
+                int status = con.getResponseCode();
+                if (status != 200) {
+                    throw new IOException("Status Code : " + status);
+                }
+                is = con.getInputStream();
+                result = is.toString();
+            }catch(SocketTimeoutException ex) {
+
+            }catch(MalformedURLException ex){
+
+            }catch(IOException ex){
+
+            }finally{
+                if(con != null){
+                    con.disconnect();
+                }
+                if(is != null){
+                    try{
+                        is.close();
+                    }catch(IOException ex){
+
+                    }
+                }
+            }
+            return result;
+        }
+    }// FuelClockRemotePost
 
 
 }
