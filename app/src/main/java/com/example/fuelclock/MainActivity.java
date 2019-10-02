@@ -29,6 +29,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.util.Locale.JAPAN;
 
@@ -38,9 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         // 設定値を読み込む
         final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
@@ -59,6 +61,17 @@ public class MainActivity extends AppCompatActivity {
         // 設定値をWebAppから取得
         FuelClockRemoteGet fcRemoteGet = new FuelClockRemoteGet();
         fcRemoteGet.execute();
+
+        //Timer
+        Timer timer = new Timer();
+        TimerTask temertask = new TimerTask() {
+            @Override
+            public void run() {
+                FuelClockRemoteGet fcrGet = new FuelClockRemoteGet();
+                fcrGet.execute();
+            }
+        };
+
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
@@ -193,8 +206,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public String doInBackground(String... strings) {
-            final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
-            final SharedPreferences.Editor editorPrefs = spPrefs.edit();
             String result ="";
             HttpURLConnection con = null;
             InputStream is = null;
@@ -222,17 +233,33 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            try {
-                JSONObject json = new JSONObject(result);
-                editorPrefs.putString("StartTime",json.getString("start"));
-                editorPrefs.putString("FinishTime",json.getString("finish"));
-                editorPrefs.apply();
-            }catch(JSONException ex){
+            return result;
+        }
 
+        public void onPostExecute(String result){
+            final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
+            final SharedPreferences.Editor editorPrefs = spPrefs.edit();
+            final EditText inputStartTime = findViewById(R.id.etStartTime);
+            final EditText inputFinishTime = findViewById(R.id.etFinishTime);
+            String sStartTime = "";
+            String sFinishTime = "";
+            if (result != null) {
+                try {
+                    JSONObject json = new JSONObject(result);
+                    sStartTime = json.getString("start");
+                    sFinishTime = json.getString("finish");
+                } catch (JSONException ex) {
+
+                }
+                inputStartTime.setText(sStartTime);
+                inputFinishTime.setText(sFinishTime);
+                editorPrefs.putString("StartTime", sStartTime);
+                editorPrefs.putString("FinishTime", sFinishTime);
+                editorPrefs.apply();
             }
-            return null;
         }
     }// FuelClockRemoteGet
+
 
     // 設定値をGAS WebAppに投稿する非同期タスク
     private class FuelClockRemotePost extends AsyncTask<String , String , String > {
