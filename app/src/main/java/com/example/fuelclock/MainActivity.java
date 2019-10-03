@@ -64,13 +64,13 @@ public class MainActivity extends AppCompatActivity {
 
         //Timer
         Timer timer = new Timer();
-        TimerTask temertask = new TimerTask() {
+        timer.schedule( new TimerTask() {
             @Override
             public void run() {
                 FuelClockRemoteGet fcrGet = new FuelClockRemoteGet();
                 fcrGet.execute();
             }
-        };
+        }, 0, 60000);
 
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
