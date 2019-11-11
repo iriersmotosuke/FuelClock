@@ -2,6 +2,7 @@ package com.example.fuelclock;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -15,35 +16,41 @@ import javax.net.ssl.HttpsURLConnection;
 import com.example.fuelclock.MainActivity;
 import com.example.fuelclock.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class FC_AsyncTask extends AsyncTask<String, Void, String> {
 
     // UI スレッドから操作するビュー
-    private TextView textView;
+    private TextView indicaterMessage;
+    private EditText inputStartTime;
+    private EditText inputFinishTime;
+
 
     public FC_AsyncTask(Context context) {
         // 本メソッドは UI スレッドで処理されます。
         super();
         MainActivity mainActivity = (MainActivity)context;
-        textView = (TextView)mainActivity.findViewById(R.id.tvMessage);
+        indicaterMessage = (TextView)mainActivity.findViewById(R.id.tvMessage);
+        inputStartTime = (EditText) mainActivity.findViewById(R.id.etStartTime);
+        inputFinishTime = (EditText) mainActivity.findViewById(R.id.etFinishTime);
     }
 
     @Override
     protected String doInBackground(String... params) {
+        // background処理スレッド：UIビューは操作できない。
 
-        // 本メソッドは background 用のスレッドで処理されます。
-        // そのため、UI のビューを操作してはいけません。
-
-        // Java の文字列連結では StringBuilder を利用します。
+        // Java の文字列連結では StringBuilder を利用。
         // https://www.qoosky.io/techs/05a157a3e0
         StringBuilder sb = new StringBuilder();
 
-        // finally 内で利用するため try の前に宣言します。
+        // finally 内で利用するため try の前に宣言しておく。
         InputStream inputStream = null;
         HttpsURLConnection connection = null;
 
         try {
-            // URL 文字列をセットします。
+            // URL 文字列をセット。
             URL url = new URL(params[0]);
             connection = (HttpsURLConnection)url.openConnection();
             connection.setConnectTimeout(3000); // タイムアウト 3 秒
@@ -53,13 +60,13 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
             connection.setRequestMethod("GET");
             connection.connect();
 
-            // レスポンスコードの確認します。
+            // レスポンスコードの確認
             int responseCode = connection.getResponseCode();
             if(responseCode != HttpsURLConnection.HTTP_OK) {
                 throw new IOException("HTTP responseCode: " + responseCode);
             }
 
-            // 文字列化します。
+            // input streamを文字列化
             inputStream = connection.getInputStream();
             if(inputStream != null) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
@@ -87,7 +94,23 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        // 本メソッドは UI スレッドで処理されるため、ビューを操作できます。
-        textView.setText(result);
+        // UI スレッドで処理される。ビューを操作できる。
+        indicaterMessage.setText(result);
+        String sStartTime = "";
+        String sFinishTime =  "";
+
+        // JSONをパースする
+        try {
+            JSONObject json = new JSONObject(result.toString());
+            sStartTime = json.getString("start");
+            sFinishTime = json.getString("finish");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        // 取得したstart/finish timeをセットする
+        if(sStartTime != "" && sFinishTime != "") {
+            inputStartTime.setText(sStartTime);
+            inputFinishTime.setText(sFinishTime);
+        }
     }
 }

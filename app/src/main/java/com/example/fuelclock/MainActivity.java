@@ -58,26 +58,12 @@ public class MainActivity extends AppCompatActivity {
         inputFullTank.setText(sFullTank);
         final TextView indicaterMessage =findViewById(R.id.tvMessage);
 
-        // 設定値をWebAppから取得
-        FuelClockRemoteGet fcRemoteGet = new FuelClockRemoteGet();
-        fcRemoteGet.execute();
-
-        //Timer
-        Timer timer = new Timer();
-        timer.schedule( new TimerTask() {
-            @Override
-            public void run() {
-                FuelClockRemoteGet fcrGet = new FuelClockRemoteGet();
-                fcrGet.execute();
-            }
-        }, 0, 60000);
-
-
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
         final Runnable runFuelClock = new Runnable() {
             double dEstLPM = 0;
             double dFullTank;
+            double dEstFuel;
             TextView indicaterEstFuel = findViewById(R.id.tvEstFuel);
             SimpleDateFormat sdf_HHmm = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_HHmmss = new SimpleDateFormat("HH:mm:ss");
@@ -95,7 +81,8 @@ public class MainActivity extends AppCompatActivity {
                     dateSatrtTime = sdf_HHmm.parse(sStartTime);
                     dateFinishTime = sdf_HHmm.parse(sFinishTime);
                 } catch (Exception e) {
-                    indicaterMessage.setText(R.string.err_format_HHmm);
+                    //indicaterMessage.setText(R.string.err_format_HHmm);
+                    e.printStackTrace();
                 }
                 // 満タン容量(L)を取得
                 String sFullTank = inputFullTank.getText().toString();
@@ -106,18 +93,17 @@ public class MainActivity extends AppCompatActivity {
                 indicaterTimeNow.setText(sdf_HHmmss.format(cal.getTime()));
 
                 // 予定燃料消費量を再計算・表示
-                /*
-                long lTimeNowHour = cal.get(Calendar.HOUR_OF_DAY); // GMT + TimeZoneOffset, Today
-                long lTimeNowMin = cal.get(Calendar.MINUTE);
-                long lTimeNowSec = cal.get(Calendar.SECOND);
-                long lTimeNow = (lTimeNowHour * 3600 + lTimeNowMin * 60 + lTimeNowSec) * 1000; // GMT + TimeZoneOffset, 1970/01/01
-                */
                 long lTimeNowTZoffset = cal.get(Calendar.ZONE_OFFSET);
                 long lTimeNow = (cal.get(Calendar.HOUR_OF_DAY) * 3600 + cal.get(Calendar.MINUTE) * 60 + cal.get(Calendar.SECOND)) * 1000; // GMT + TimeZoneOffset, 1970/01/01
                 long lStartTime = dateSatrtTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
                 long lFinishTime = dateFinishTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
-                dEstLPM = dFullTank / (lFinishTime - lStartTime);
-                double dEstFuel = dEstLPM * (lTimeNow - lStartTime);
+                if (lTimeNow > lStartTime) {
+                    dEstLPM = dFullTank / (lFinishTime - lStartTime);
+                    dEstFuel = dEstLPM * (lTimeNow - lStartTime);
+                }else{
+                    dEstFuel = 0;
+                }
+
                 indicaterEstFuel.setText(String.format(Locale.JAPAN, "%1$.2f", dEstFuel));
                 hdlrFuelClock.postDelayed(this, 1000);
             }
@@ -195,124 +181,9 @@ public class MainActivity extends AppCompatActivity {
                 editorPrefs.apply();
             }
         });
+
+        // スタートフィニッシュ時刻をGAS web APIから取得(非同期処理の実行)
+        FC_AsyncTask task = new FC_AsyncTask(this);
+        task.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
     }//onCreate()
-
-    // 設定値をGAS WebAppから取得する非同期タスク
-    private class FuelClockRemoteGet extends AsyncTask<String , String , String > {
-
-        public FuelClockRemoteGet(){
-
-        }
-
-        @Override
-        public String doInBackground(String... strings) {
-            String result ="";
-            HttpURLConnection con = null;
-            InputStream is = null;
-            String sUrl = "https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam";
-            try {
-                URL url = new URL(sUrl);
-                con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("GET");
-                con.connect();
-                is = con.getInputStream();
-                result = is.toString();
-            }catch(MalformedURLException ex){
-
-            }catch(IOException ex){
-
-            }finally{
-                if(con != null){
-                    con.disconnect();
-                }
-                if(is != null){
-                    try{
-                        is.close();
-                    }catch(IOException ex){
-
-                    }
-                }
-            }
-            return result;
-        }
-
-        public void onPostExecute(String result){
-            final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
-            final SharedPreferences.Editor editorPrefs = spPrefs.edit();
-            final EditText inputStartTime = findViewById(R.id.etStartTime);
-            final EditText inputFinishTime = findViewById(R.id.etFinishTime);
-            String sStartTime = "";
-            String sFinishTime = "";
-            if (result != null) {
-                try {
-                    JSONObject json = new JSONObject(result);
-                    sStartTime = json.getString("start");
-                    sFinishTime = json.getString("finish");
-                } catch (JSONException ex) {
-
-                }
-                inputStartTime.setText(sStartTime);
-                inputFinishTime.setText(sFinishTime);
-                editorPrefs.putString("StartTime", sStartTime);
-                editorPrefs.putString("FinishTime", sFinishTime);
-                editorPrefs.apply();
-            }
-        }
-    }// FuelClockRemoteGet
-
-
-    // 設定値をGAS WebAppに投稿する非同期タスク
-    private class FuelClockRemotePost extends AsyncTask<String , String , String > {
-
-        public FuelClockRemotePost(){
-
-        }
-
-        @Override
-        public String doInBackground(String... strings) {
-            String sPostData ="text_statime=12:45&text_fintime=15:15";
-            HttpURLConnection con = null;
-            String sUrl = "https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec";
-            InputStream is = null;
-            String result = "";
-            try {
-                URL url = new URL(sUrl);
-                con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("POST");
-                con.setConnectTimeout(5000);
-                con.setReadTimeout(5000);
-                con.setDoOutput(true);
-                OutputStream os = con.getOutputStream();
-                os.write(sPostData.getBytes());
-                os.flush();
-                os.close();
-                int status = con.getResponseCode();
-                if (status != 200) {
-                    throw new IOException("Status Code : " + status);
-                }
-                is = con.getInputStream();
-                result = is.toString();
-            }catch(SocketTimeoutException ex) {
-
-            }catch(MalformedURLException ex){
-
-            }catch(IOException ex){
-
-            }finally{
-                if(con != null){
-                    con.disconnect();
-                }
-                if(is != null){
-                    try{
-                        is.close();
-                    }catch(IOException ex){
-
-                    }
-                }
-            }
-            return result;
-        }
-    }// FuelClockRemotePost
-
-
 }
