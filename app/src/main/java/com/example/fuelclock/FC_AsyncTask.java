@@ -27,6 +27,7 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
     private EditText inputStartTime;
     private EditText inputFinishTime;
 
+    private CallBackTask callBackTask;
 
     public FC_AsyncTask(Context context) {
         // 本メソッドは UI スレッドで処理されます。
@@ -95,7 +96,7 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         // UI スレッドで処理される。ビューを操作できる。
-        indicaterMessage.setText(result);
+        // indicaterMessage.setText(result);
         String sStartTime = "";
         String sFinishTime =  "";
 
@@ -112,5 +113,24 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
             inputStartTime.setText(sStartTime);
             inputFinishTime.setText(sFinishTime);
         }
+        /*
+        try {
+            Thread.sleep(3600000);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+         */
+        callBackTask.CallBack();
+    }
+
+    public void setOnCallBack(CallBackTask t_object)
+    {
+        callBackTask = t_object;
+    }
+
+    // コールバック用のインターフェース定義
+    interface CallBackTask
+    {
+        void CallBack();
     }
 }

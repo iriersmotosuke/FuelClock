@@ -34,15 +34,15 @@ import java.util.TimerTask;
 
 import static java.util.Locale.JAPAN;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements FC_AsyncTask.CallBackTask {
 
     private static final String PREF_FILE_NAME = "com.example.fuelclock.FuelClockPrefs";
+    // FC_AsyncTask asyncTask = new FC_AsyncTask(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         // 設定値を読み込む
         final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
@@ -183,7 +183,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // スタートフィニッシュ時刻をGAS web APIから取得(非同期処理の実行)
-        FC_AsyncTask task = new FC_AsyncTask(this);
-        task.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
+        FC_AsyncTask asyncTask = new FC_AsyncTask(this);
+        asyncTask.setOnCallBack(this);
+        asyncTask.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
     }//onCreate()
+
+    // 非同期タスクのコールバック処理
+    @Override
+    public void CallBack() {
+        FC_AsyncTask asyncTask = new FC_AsyncTask(this);
+        asyncTask.setOnCallBack(this);
+        asyncTask.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
+    }
 }
