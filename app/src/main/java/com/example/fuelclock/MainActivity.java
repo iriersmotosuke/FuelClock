@@ -37,7 +37,6 @@ import static java.util.Locale.JAPAN;
 public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask.CallBackTask {
 
     private static final String PREF_FILE_NAME = "com.example.fuelclock.FuelClockPrefs";
-    // FC_AsyncTask asyncTask = new FC_AsyncTask(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,25 +72,21 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
 
             @Override
             public void run() {
-                indicaterMessage.setText("");
-                // スタート・フィニッシュ時刻を取得
+                // UIからstart/finish timeを取得
                 String sStartTime = inputStartTime.getText().toString();
                 String sFinishTime = inputFinishTime.getText().toString();
                 try {
                     dateSatrtTime = sdf_HHmm.parse(sStartTime);
                     dateFinishTime = sdf_HHmm.parse(sFinishTime);
                 } catch (Exception e) {
-                    //indicaterMessage.setText(R.string.err_format_HHmm);
                     e.printStackTrace();
                 }
-                // 満タン容量(L)を取得
+                // UIから満タン容量(L)を取得
                 String sFullTank = inputFullTank.getText().toString();
                 dFullTank = Double.parseDouble(sFullTank);
-
                 // 現在時刻を表示
-                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));// 現在時刻を取得
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
                 indicaterTimeNow.setText(sdf_HHmmss.format(cal.getTime()));
-
                 // 予定燃料消費量を再計算・表示
                 long lTimeNowTZoffset = cal.get(Calendar.ZONE_OFFSET);
                 long lTimeNow = (cal.get(Calendar.HOUR_OF_DAY) * 3600 + cal.get(Calendar.MINUTE) * 60 + cal.get(Calendar.SECOND)) * 1000; // GMT + TimeZoneOffset, 1970/01/01
@@ -103,7 +98,6 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 }else{
                     dEstFuel = 0;
                 }
-
                 indicaterEstFuel.setText(String.format(Locale.JAPAN, "%1$.2f", dEstFuel));
                 hdlrFuelClock.postDelayed(this, 1000);
             }
@@ -182,20 +176,28 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             }
         });
 
+        // 定期的にGAS Web APIからstart/finish timeを取得
+        final Context contextMainActivity = (Context)this; // 非同期スレッドからのUIアクセス用
+        final Handler handlerTimerTask = new Handler();
+        Timer timerWebAccess = new Timer(true);
+        timerWebAccess.schedule(new TimerTask(){
+            @Override
+            public void run() {
+                handlerTimerTask.post( new Runnable() {
+                    public void run() {
+                        // 非同期タスクでwebにアクセス
+                        FC_AsyncTask task = new FC_AsyncTask(contextMainActivity);
+                        task.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
+                    }
+                });
+            }
+        },0,60000); //0秒後から60秒間隔で実行
+
+    /*
         // スタートフィニッシュ時刻をGAS web APIから取得(非同期処理の実行)
         FC_AsyncTask asyncTask = new FC_AsyncTask(this);
         // asyncTask.setOnCallBack(this);
         asyncTask.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
+    */
     }//onCreate()
-
-/*
-    // 非同期タスクのコールバック処理
-    @Override
-    public void CallBack() {
-        // スタートフィニッシュ時刻をGAS web APIから取得(非同期処理の実行)
-        FC_AsyncTask asyncTask = new FC_AsyncTask(this);
-        asyncTask.setOnCallBack(this);
-        asyncTask.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
-    }
-*/
 }
