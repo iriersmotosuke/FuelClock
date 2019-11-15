@@ -22,15 +22,14 @@ import org.json.JSONObject;
 
 public class FC_AsyncTask extends AsyncTask<String, Void, String> {
 
-    // UI スレッドから操作するビュー
     private TextView indicaterMessage;
     private EditText inputStartTime;
     private EditText inputFinishTime;
 
-    private CallBackTask callBackTask;
+    // private CallBackTask callBackTask;
 
     public FC_AsyncTask(Context context) {
-        // 本メソッドは UI スレッドで処理されます。
+        // UI スレッドで処理
         super();
         MainActivity mainActivity = (MainActivity)context;
         indicaterMessage = (TextView)mainActivity.findViewById(R.id.tvMessage);
@@ -113,24 +112,17 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
             inputStartTime.setText(sStartTime);
             inputFinishTime.setText(sFinishTime);
         }
-        /*
-        try {
-            Thread.sleep(3600000);
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
-         */
-        callBackTask.CallBack();
+        // callBackTask.CallBack();
     }
-
+/*
     public void setOnCallBack(CallBackTask t_object)
     {
         callBackTask = t_object;
     }
-
     // コールバック用のインターフェース定義
     interface CallBackTask
     {
         void CallBack();
     }
+ */
 }
