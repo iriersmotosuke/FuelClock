@@ -35,21 +35,20 @@
         android:layout_height="wrap_content"
         android:text="@string/labelExtFuel"
         android:textSize="@dimen/tvSizeSmall"
-        app:layout_constraintBottom_toTopOf="@+id/tvEstFuel"
-        app:layout_constraintStart_toStartOf="@+id/tvTimeNow" />
+        app:layout_constraintStart_toStartOf="@+id/tvTimeNow"
+        app:layout_constraintTop_toBottomOf="@+id/tvTimeNow" />
 
     <TextView
         android:id="@+id/tvEstFuel"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
+        android:layout_height="0dp"
         android:text="@string/estimatedFuelConsumption"
         android:textAlignment="textEnd"
         android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeLarge"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/tvTimeNow" />
+        app:layout_constraintEnd_toEndOf="@+id/tvTimeNow"
+        app:layout_constraintTop_toBottomOf="@+id/tvLabel_EstFuel" />
 
     <TextView
         android:id="@+id/tvUnit_EstFuel"
@@ -93,7 +92,6 @@
         android:id="@+id/tvLabel_FinishTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
         android:text="@string/labelFinishTime"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
@@ -121,7 +119,6 @@
         android:id="@+id/tvLabel_FullTank"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
         android:text="@string/labelFullTank"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
@@ -130,7 +127,7 @@
     <EditText
         android:id="@+id/etFullTank"
         android:layout_width="200dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginEnd="25dp"
         android:cursorVisible="false"
         android:ems="10"
@@ -148,11 +145,11 @@
 
     <TextView
         android:id="@+id/tvMessage"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textAlignment="center"
+        android:textAlignment="viewStart"
         android:textColor="@android:color/white"
-        android:textSize="@dimen/tvSizeSmall"
+        android:textSize="@dimen/tvSizeMiddle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

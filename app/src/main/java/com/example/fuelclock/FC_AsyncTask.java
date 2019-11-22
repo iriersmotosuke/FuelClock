@@ -19,6 +19,8 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
     // private TextView indicaterMessage;
     private EditText inputStartTime;
     private EditText inputFinishTime;
+    private TextView indicaterMessage;
+
 
     public FC_AsyncTask(Context context) { // コンストラクタ：UI スレッドで処理
         super();
@@ -26,6 +28,7 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
         // indicaterMessage = (TextView)mainActivity.findViewById(R.id.tvMessage);
         inputStartTime = (EditText) mainActivity.findViewById(R.id.etStartTime);
         inputFinishTime = (EditText) mainActivity.findViewById(R.id.etFinishTime);
+        indicaterMessage = (TextView) mainActivity.findViewById(R.id.tvMessage);
     }
 
     @Override
@@ -75,11 +78,13 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String result) { // ポスト処理：UI スレッドで実行される
         String sStartTime = "";
         String sFinishTime =  "";
+        String sMessage = "";
 
         try { // JSONのパース
             JSONObject json = new JSONObject(result.toString());
             sStartTime = json.getString("start");
             sFinishTime = json.getString("finish");
+            sMessage = json.getString("message");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -87,6 +92,7 @@ public class FC_AsyncTask extends AsyncTask<String, Void, String> {
         if(sStartTime != "" && sFinishTime != "") {
             inputStartTime.setText(sStartTime);
             inputFinishTime.setText(sFinishTime);
+            indicaterMessage.setText(sMessage);
         }
     }
 }
