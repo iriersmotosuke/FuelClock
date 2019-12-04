@@ -104,6 +104,9 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         };
         hdlrFuelClock.post(runFuelClock);
 
+        // 端末アプリでの設定値変更を示すセマフォ
+        final Boolean[] semaEtStartTimeChanged = {Boolean.FALSE};
+        final Boolean[] semaEtFinishTimeChanged = {Boolean.FALSE};
         // スタート時刻をクリックすると入力モードに入る
         inputStartTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,6 +128,7 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             public void afterTextChanged(Editable s) {
                 editorPrefs.putString("StartTime",s.toString());
                 editorPrefs.apply();
+                semaEtStartTimeChanged[0] = Boolean.TRUE;
             }
         });
 
@@ -149,6 +153,7 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             public void afterTextChanged(Editable s) {
                 editorPrefs.putString("FinishTime",s.toString());
                 editorPrefs.apply();
+                semaEtFinishTimeChanged[0] = Boolean.TRUE;
             }
         });
 
@@ -177,27 +182,32 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         });
 
         // 定期的にGAS Web APIからstart/finish timeを取得
-        final Context contextMainActivity = (Context)this; // 非同期スレッドからのUIアクセス用
         final Handler handlerTimerTask = new Handler();
+        final Context contextMainActivity = (Context)this; // 非同期スレッドからのUIアクセス用
+
         Timer timerWebAccess = new Timer(true);
         timerWebAccess.schedule(new TimerTask(){
             @Override
             public void run() {
                 handlerTimerTask.post( new Runnable() {
                     public void run() {
+                        // 端末アプリでスタート／フィニッシュ時刻が変更されたらWebにも反映する
+                        String sParams = "";
+                        if(semaEtStartTimeChanged[0]){
+                            sParams = sParams + "&statime="+inputStartTime.getText().toString();
+                            semaEtStartTimeChanged[0] = Boolean.FALSE;
+                        }
+                        if(semaEtFinishTimeChanged[0]){
+                            sParams = sParams + "&fintime="+inputFinishTime.getText().toString();
+                            semaEtFinishTimeChanged[0] = Boolean.FALSE;
+                        }
                         // 非同期タスクでwebにアクセス
                         FC_AsyncTask task = new FC_AsyncTask(contextMainActivity);
-                        task.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
+                        task.execute("https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam"+sParams);
                     }
                 });
             }
         },0,60000); //0秒後から60秒間隔で実行
 
-    /*
-        // スタートフィニッシュ時刻をGAS web APIから取得(非同期処理の実行)
-        FC_AsyncTask asyncTask = new FC_AsyncTask(this);
-        // asyncTask.setOnCallBack(this);
-        asyncTask.execute("https://script.googleusercontent.com/macros/echo?user_content_key=w9E_OKscwtYpSSX07wXc6vO8BzJZy_msr10tw7jrZjkHPqp2U4QJuPUVPcx41zuuEW7K6rwhS3_PlM7xqQ_hGL894LUZDSwum5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnGJYth4QZP7iiP7bceTKjA0lS1JJHaf4ZP8OK0TxNPDjnVty66M4V6cVKy4pTXdb0ruPUG5f6FvegVT0xB9ghLax3ZItj4Qp0Q&lib=MzkmfzTIrRCPav-9hHQlpQOYeOo7jHhGE");
-    */
     }//onCreate()
 }
