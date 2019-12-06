@@ -5,34 +5,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static java.util.Locale.JAPAN;
 
 public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask.CallBackTask {
 
@@ -55,7 +41,7 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         inputStartTime.setText(sStartTime);
         inputFinishTime.setText(sFinishTime);
         inputFullTank.setText(sFullTank);
-        final TextView indicaterMessage =findViewById(R.id.tvMessage);
+        //final TextView indicaterMessage =findViewById(R.id.tvMessage);
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
@@ -183,7 +169,7 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
 
         // 定期的にGAS Web APIからstart/finish timeを取得
         final Handler handlerTimerTask = new Handler();
-        final Context contextMainActivity = (Context)this; // 非同期スレッドからのUIアクセス用
+        final Context contextMainActivity = this; // 非同期スレッドからのUIアクセス用
 
         Timer timerWebAccess = new Timer(true);
         timerWebAccess.schedule(new TimerTask(){
