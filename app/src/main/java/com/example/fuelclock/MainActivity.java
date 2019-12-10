@@ -112,9 +112,13 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             }
             @Override
             public void afterTextChanged(Editable s) {
-                editorPrefs.putString("StartTime",s.toString());
-                editorPrefs.apply();
-                semaEtStartTimeChanged[0] = Boolean.TRUE;
+                String s1 = s.toString();
+                String s2 = spPrefs.getString("StartTime", "00:00");
+                if(!s1.equals(s2)) {
+                    editorPrefs.putString("StartTime", s1);
+                    editorPrefs.apply();
+                    semaEtStartTimeChanged[0] = Boolean.TRUE;
+                }
             }
         });
 
@@ -137,9 +141,13 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             }
             @Override
             public void afterTextChanged(Editable s) {
-                editorPrefs.putString("FinishTime",s.toString());
-                editorPrefs.apply();
-                semaEtFinishTimeChanged[0] = Boolean.TRUE;
+                String s1 = s.toString();
+                String s2 = spPrefs.getString("FinishTime", "00:00");
+                if(!s1.equals(s2)){
+                    editorPrefs.putString("FinishTime", s1);
+                    editorPrefs.apply();
+                    semaEtFinishTimeChanged[0] = Boolean.TRUE;
+                }
             }
         });
 
