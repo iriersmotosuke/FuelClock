@@ -3,4 +3,5 @@
     <dimen name="tvSizeLarge">75sp</dimen>
     <dimen name="tvSizeMiddle">40sp</dimen>
     <dimen name="tvSizeSmall">25sp</dimen>
+    <dimen name="tvSizeExtraSmall">10sp</dimen>
 </resources>

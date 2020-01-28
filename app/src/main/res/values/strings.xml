@@ -12,4 +12,5 @@
     <string name="labelFullTank">満タン容量(L)</string>
     <string name="etDefaultFullTank">40.00</string>
     <string name="err_format_HHmm">時刻は13:15のように入力してください。</string>
+    <string name="hint">-</string>
 </resources>

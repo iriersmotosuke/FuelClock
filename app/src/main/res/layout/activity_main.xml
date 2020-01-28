@@ -65,17 +65,16 @@
         android:id="@+id/tvLabel_StartTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
+        android:layout_marginStart="25dp"
         android:text="@string/labelStartTime"
         android:textSize="@dimen/tvSizeSmall"
-        app:layout_constraintStart_toStartOf="@+id/etStartTime"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvEstFuel" />
 
     <EditText
         android:id="@+id/etStartTime"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="25dp"
         android:cursorVisible="false"
         android:ems="10"
         android:focusableInTouchMode="false"
@@ -85,8 +84,9 @@
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeSmall"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvLabel_StartTime" />
+        app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
+        app:layout_constraintTop_toBottomOf="@+id/tvLabel_StartTime"
+        android:autofillHints="@string/hint" />
 
     <TextView
         android:id="@+id/tvLabel_FinishTime"
@@ -101,7 +101,6 @@
         android:id="@+id/etFinishTime"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="25dp"
         android:cursorVisible="false"
         android:ems="10"
         android:focusableInTouchMode="false"
@@ -111,9 +110,9 @@
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeSmall"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
-        app:layout_constraintTop_toBottomOf="@+id/tvLabel_FinishTime" />
+        app:layout_constraintTop_toBottomOf="@+id/tvLabel_FinishTime"
+        android:autofillHints="@string/hint" />
 
     <TextView
         android:id="@+id/tvLabel_FullTank"
@@ -128,7 +127,6 @@
         android:id="@+id/etFullTank"
         android:layout_width="200dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="25dp"
         android:cursorVisible="false"
         android:ems="10"
         android:focusableInTouchMode="false"
@@ -138,10 +136,9 @@
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeSmall"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/tvLabel_StartTime"
-        app:layout_constraintTop_toBottomOf="@+id/tvLabel_FullTank" />
+        app:layout_constraintTop_toBottomOf="@+id/tvLabel_FullTank"
+        android:autofillHints="@string/hint" />
 
     <TextView
         android:id="@+id/tvMessage"
@@ -153,23 +150,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <!--TextClock
-        android:id="@+id/tcClock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:format12Hour="hh:mm:ss"
-        android:format24Hour="HH:mm:ss"
-        android:text="@string/currentTime"
-        android:textAlignment="center"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/tvSizeSmall"
-        android:textStyle="bold"
-        android:timeZone="GMT+900"
-        app:layout_constraintBottom_toTopOf="@+id/tvLabel_EstFuel"
-        app:layout_constraintEnd_toEndOf="@+id/tvTimeNow"
-        app:layout_constraintStart_toStartOf="@+id/tvLabel_TimeNow"
-        app:layout_constraintTop_toBottomOf="@+id/tvTimeNow" /-->
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
