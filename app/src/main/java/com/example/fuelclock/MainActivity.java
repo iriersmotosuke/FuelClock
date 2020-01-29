@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,7 +42,10 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         inputStartTime.setText(sStartTime);
         inputFinishTime.setText(sFinishTime);
         inputFullTank.setText(sFullTank);
-        //final TextView indicaterMessage =findViewById(R.id.tvMessage);
+
+        // Version表示
+        TextView tvVersionName = findViewById(R.id.tvVersionName);
+        tvVersionName.setText(new StringBuilder().append("FuelClock v.").append(getPackageAppVersion()));
 
         // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
@@ -204,4 +208,18 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         },0,60000); //0秒後から60秒間隔で実行
 
     }//onCreate()
+
+    private String getPackageAppVersion() {
+
+        String version = null;
+        try {
+            String packageName = getPackageName();
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(packageName, 0);
+            version = packageInfo.versionName;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return version;
+    }
 }
