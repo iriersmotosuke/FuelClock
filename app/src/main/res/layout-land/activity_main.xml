@@ -16,7 +16,7 @@
         app:layout_constraintStart_toStartOf="@+id/tvTimeNow"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
+     <TextView
         android:id="@+id/tvTimeNow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -79,6 +79,8 @@
         android:cursorVisible="false"
         android:ems="10"
         android:focusableInTouchMode="false"
+        android:hint="@string/hint"
+        android:autofillHints="@string/hint"
         android:imeOptions="actionDone"
         android:inputType="time"
         android:text="@string/etDefault_StartTime"
@@ -86,9 +88,7 @@
         android:textColor="@android:color/white"
         android:textSize="@dimen/tvSizeSmall"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvLabel_StartTime"
-        android:autofillHints="@string/hint"
-        android:hint="@string/hint"/>
+        app:layout_constraintTop_toBottomOf="@id/tvLabel_StartTime" />
 
     <TextView
         android:id="@+id/tvLabel_FinishTime"
@@ -169,5 +169,4 @@
         android:textSize="@dimen/tvSizeExtraSmall"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
