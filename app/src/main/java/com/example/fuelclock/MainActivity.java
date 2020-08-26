@@ -9,6 +9,7 @@ import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
@@ -35,62 +36,90 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         // 設定値を読み込む
         final SharedPreferences spPrefs = getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE);
         final SharedPreferences.Editor editorPrefs = spPrefs.edit();
-        String sStartTime = spPrefs.getString("StartTime", "13:00");
-        String sFinishTime = spPrefs.getString("FinishTime", "15:30");
+        String sStartTime = spPrefs.getString("StartTime", "13:00:00");
+        String sDuration = spPrefs.getString("Duration", "2:30:00");
         String sFullTank = spPrefs.getString("FullTank", "40.00");
+        String sAveLapTime = spPrefs.getString("AveLapTime", "00:01:16");
         final EditText inputStartTime = findViewById(R.id.etStartTime);
-        final EditText inputFinishTime = findViewById(R.id.etFinishTime);
+        final EditText inputDuration = findViewById(R.id.etDuration);
         final EditText inputFullTank = findViewById(R.id.etFullTank);
+        final EditText inputAveLapTime = findViewById(R.id.etAveLapTime);
         inputStartTime.setText(sStartTime);
-        inputFinishTime.setText(sFinishTime);
+        inputDuration.setText(sDuration);
         inputFullTank.setText(sFullTank);
+        inputAveLapTime.setText(sAveLapTime);
 
         // Version表示
         TextView tvVersionName = findViewById(R.id.tvVersionName);
-        tvVersionName.setText(new StringBuilder().append("FuelClock v.").append(getPackageAppVersion()));
+        tvVersionName.setText(new StringBuilder().append("v.").append(getPackageAppVersion()));
 
-        // 1秒ごとに予定燃料消費量を再計算・表示するデーモンスレッド
+        // 1秒ごとに予定燃料消費量・残り周回数を再計算・表示するデーモンスレッド
         final Handler hdlrFuelClock = new Handler();
         final Runnable runFuelClock = new Runnable() {
             double dEstLPM = 0;
             double dFullTank;
             double dEstFuel;
+            double dLapsToGo;
             TextView indicaterEstFuel = findViewById(R.id.tvEstFuel);
-            SimpleDateFormat sdf_HHmm = new SimpleDateFormat("HH:mm");
+            // SimpleDateFormat sdf_HHmm = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_HHmmss = new SimpleDateFormat("HH:mm:ss");
             Date dateSatrtTime = new Date();
-            Date dateFinishTime = new Date();
+            Date dateDuration = new Date();
+            Date dateAveLapTime = new Date();
             TextView indicaterTimeNow = findViewById(R.id.tvTimeNow);
+            TextView indicaterLapsToGo = findViewById(R.id.tvLapsToGo);
 
             @Override
             public void run() {
-                // UIからstart/finish timeを取得
+                // UIからスタート時刻, フィニッシュ時刻, ラップタイム(平均)を取得
                 String sStartTime = inputStartTime.getText().toString();
-                String sFinishTime = inputFinishTime.getText().toString();
+                String sDuration = inputDuration.getText().toString();
+                String sAveLapTime = inputAveLapTime.getText().toString();
                 try {
-                    dateSatrtTime = sdf_HHmm.parse(sStartTime);
-                    dateFinishTime = sdf_HHmm.parse(sFinishTime);
+                    dateSatrtTime = sdf_HHmmss.parse(sStartTime);
+                    dateDuration = sdf_HHmmss.parse(sDuration);
+                    dateAveLapTime = sdf_HHmmss.parse(sAveLapTime);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 // UIから満タン容量(L)を取得
                 String sFullTank = inputFullTank.getText().toString();
-                dFullTank = Double.parseDouble(sFullTank);
-                // 現在時刻を表示
+                if(sFullTank.matches("(^0|^[1-9]+[0-9]*)\\.?[0-9]*$")) {
+                    dFullTank = Double.parseDouble(sFullTank);
+                }
+                // 現在時刻を取得
                 Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-                indicaterTimeNow.setText(sdf_HHmmss.format(cal.getTime()));
-                // 予定燃料消費量を再計算・表示
+                // 予定燃料消費量・残り周回数を再計算・表示
                 long lTimeNowTZoffset = cal.get(Calendar.ZONE_OFFSET);
                 long lTimeNow = (cal.get(Calendar.HOUR_OF_DAY) * 3600 + cal.get(Calendar.MINUTE) * 60 + cal.get(Calendar.SECOND)) * 1000; // GMT + TimeZoneOffset, 1970/01/01
-                long lStartTime = dateSatrtTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
-                long lFinishTime = dateFinishTime.getTime() + lTimeNowTZoffset; // GMT + TimeZoneOffset, 1970/01/01
+                long lStartTime = dateSatrtTime.getTime() + lTimeNowTZoffset; // スタート時刻　GMT + TimeZoneOffset, 1970/01/01
+                long lDuration = dateDuration.getTime() + lTimeNowTZoffset;// レース時間
+                long lAveLapTime = dateAveLapTime.getTime() + lTimeNowTZoffset;// 平均ラップタイム
                 if (lTimeNow > lStartTime) {
-                    dEstLPM = dFullTank / (lFinishTime - lStartTime);
+                    dEstLPM = dFullTank / (lDuration);
                     dEstFuel = dEstLPM * (lTimeNow - lStartTime);
                 }else{
                     dEstFuel = 0;
                 }
                 indicaterEstFuel.setText(String.format(Locale.JAPAN, "%1$.2f", dEstFuel));
+                // 残り時間を再計算・表示
+                long lTimeToGo;
+                if(lTimeNow < lStartTime){
+                     lTimeToGo = lDuration;
+                }else if (lTimeNow < lStartTime + lDuration){
+                     lTimeToGo = lStartTime + lDuration - lTimeNow;
+                }else{
+                     lTimeToGo = 0;
+                }
+                indicaterTimeNow.setText(sdf_HHmmss.format(lTimeToGo - lTimeNowTZoffset));
+                // 残り周回数(予定)を再計算・表示
+                if (lTimeToGo > 0) {
+                    dLapsToGo = Math.ceil((double)lTimeToGo / (double)lAveLapTime);
+                }else{
+                    dLapsToGo = 0;
+                }
+                indicaterLapsToGo.setText(String.format(Locale.JAPAN, "%1$.0f", dLapsToGo));
+                // 1秒間隔
                 hdlrFuelClock.postDelayed(this, 1000);
             }
         };
@@ -98,7 +127,7 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
 
         // 端末アプリでの設定値変更を示すセマフォ
         final Boolean[] semaEtStartTimeChanged = {Boolean.FALSE};
-        final Boolean[] semaEtFinishTimeChanged = {Boolean.FALSE};
+        final Boolean[] semaEtDurationChanged = {Boolean.FALSE};
         // スタート時刻をクリックすると入力モードに入る
         inputStartTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,6 +135,7 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
+                semaEtStartTimeChanged[0] = Boolean.TRUE;
             }
         });
         // 値を変更したら保存する
@@ -119,26 +149,27 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             @Override
             public void afterTextChanged(Editable s) {
                 String s1 = s.toString();
-                String s2 = spPrefs.getString("StartTime", "00:00");
+                String s2 = spPrefs.getString("StartTime", "00:00:00");
                 if(!s1.equals(s2)) {
                     editorPrefs.putString("StartTime", s1);
                     editorPrefs.apply();
-                    semaEtStartTimeChanged[0] = Boolean.TRUE;
+                    // semaEtStartTimeChanged[0] = Boolean.TRUE;
                 }
             }
         });
 
         // フィニッシュ時刻をクリックすると入力モードに入る
-        inputFinishTime.setOnClickListener(new View.OnClickListener() {
+        inputDuration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
+                semaEtDurationChanged[0] = Boolean.TRUE;
             }
         });
         // 値を変更したら保存する
-        inputFinishTime.addTextChangedListener(new TextWatcher() {
+        inputDuration.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after){
             }
@@ -148,11 +179,11 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             @Override
             public void afterTextChanged(Editable s) {
                 String s1 = s.toString();
-                String s2 = spPrefs.getString("FinishTime", "00:00");
+                String s2 = spPrefs.getString("Duration", "00:00:00");
                 if(!s1.equals(s2)){
-                    editorPrefs.putString("FinishTime", s1);
+                    editorPrefs.putString("Duration", s1);
                     editorPrefs.apply();
-                    semaEtFinishTimeChanged[0] = Boolean.TRUE;
+                    // semaEtDurationChanged[0] = Boolean.TRUE;
                 }
             }
         });
@@ -181,7 +212,35 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             }
         });
 
-        // 定期的にGAS Web APIからstart/finish timeを取得
+        // ラップタイム(平均)をクリックすると入力モードに入る
+        inputAveLapTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.setFocusable(true);
+                view.setFocusableInTouchMode(true);
+                view.requestFocus();
+            }
+        });
+        // 値を変更したら保存する
+        inputAveLapTime.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count){
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                String s1 = s.toString();
+                String s2 = spPrefs.getString("AveLapTime", "00:00:00");
+                if(!s1.equals(s2)){
+                    editorPrefs.putString("AveLapTime", s1);
+                    editorPrefs.apply();
+                }
+            }
+        });
+
+        // 定期的にGAS Web APIからstart/Race timeを取得
         final Handler handlerTimerTask = new Handler();
         final Context contextMainActivity = this; // 非同期スレッドからのUIアクセス用
 
@@ -197,9 +256,9 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                             sParams = sParams + "&statime="+inputStartTime.getText().toString();
                             semaEtStartTimeChanged[0] = Boolean.FALSE;
                         }
-                        if(semaEtFinishTimeChanged[0]){
-                            sParams = sParams + "&fintime="+inputFinishTime.getText().toString();
-                            semaEtFinishTimeChanged[0] = Boolean.FALSE;
+                        if(semaEtDurationChanged[0]){
+                            sParams = sParams + "&duration="+inputDuration.getText().toString();
+                            semaEtDurationChanged[0] = Boolean.FALSE;
                         }
                         // 非同期タスクでwebにアクセス
                         FC_AsyncTask task = new FC_AsyncTask(contextMainActivity);
