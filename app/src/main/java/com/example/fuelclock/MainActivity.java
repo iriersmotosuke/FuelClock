@@ -11,8 +11,10 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -40,14 +42,20 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         String sDuration = spPrefs.getString("Duration", "2:30:00");
         String sFullTank = spPrefs.getString("FullTank", "40.00");
         String sAveLapTime = spPrefs.getString("AveLapTime", "00:01:16");
+        String sMessage = spPrefs.getString("Message", "メッセージ");
         final EditText inputStartTime = findViewById(R.id.etStartTime);
         final EditText inputDuration = findViewById(R.id.etDuration);
         final EditText inputFullTank = findViewById(R.id.etFullTank);
         final EditText inputAveLapTime = findViewById(R.id.etAveLapTime);
+        final EditText inputMessage = findViewById(R.id.etMessage);
         inputStartTime.setText(sStartTime);
         inputDuration.setText(sDuration);
         inputFullTank.setText(sFullTank);
         inputAveLapTime.setText(sAveLapTime);
+        inputMessage.setText(sMessage);
+        final TextView indicaterTimeNow = findViewById(R.id.tvTimeNow);
+        final TextView indicaterLapsToGo = findViewById(R.id.tvLapsToGo);
+        final TextView indicaterEstFuel = findViewById(R.id.tvEstFuel);
 
         // Version表示
         TextView tvVersionName = findViewById(R.id.tvVersionName);
@@ -60,14 +68,10 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             double dFullTank;
             double dEstFuel;
             double dLapsToGo;
-            TextView indicaterEstFuel = findViewById(R.id.tvEstFuel);
-            // SimpleDateFormat sdf_HHmm = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_HHmmss = new SimpleDateFormat("HH:mm:ss");
             Date dateSatrtTime = new Date();
             Date dateDuration = new Date();
             Date dateAveLapTime = new Date();
-            TextView indicaterTimeNow = findViewById(R.id.tvTimeNow);
-            TextView indicaterLapsToGo = findViewById(R.id.tvLapsToGo);
 
             @Override
             public void run() {
@@ -102,6 +106,13 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                     dEstFuel = 0;
                 }
                 indicaterEstFuel.setText(String.format(Locale.JAPAN, "%1$.2f", dEstFuel));
+                if(dFullTank - dEstFuel < 5){
+                    indicaterEstFuel.setTextColor(0xffff3333);// Red
+                }else if(dFullTank - dEstFuel < 10){
+                    indicaterEstFuel.setTextColor(0xffff9933);// Orange
+                }else{
+                    indicaterEstFuel.setTextColor(0xffffffff);// White
+                }
                 // 残り時間を再計算・表示
                 long lTimeToGo;
                 if(lTimeNow < lStartTime){
@@ -119,6 +130,13 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                     dLapsToGo = 0;
                 }
                 indicaterLapsToGo.setText(String.format(Locale.JAPAN, "%1$.0f", dLapsToGo));
+                if(dLapsToGo <= 5){
+                    indicaterLapsToGo.setTextColor(0xffff3333);//Red
+                }else if(dLapsToGo <= 10){
+                    indicaterLapsToGo.setTextColor(0xffff9933);//Orange
+                }else{
+                    indicaterLapsToGo.setTextColor(0xffffffff);//White
+                }
                 // 1秒間隔
                 hdlrFuelClock.postDelayed(this, 1000);
             }
@@ -128,6 +146,8 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
         // 端末アプリでの設定値変更を示すセマフォ
         final Boolean[] semaEtStartTimeChanged = {Boolean.FALSE};
         final Boolean[] semaEtDurationChanged = {Boolean.FALSE};
+        final Boolean[] semaEtMessageChanged = {Boolean.FALSE};
+
         // スタート時刻をクリックすると入力モードに入る
         inputStartTime.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -135,7 +155,18 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
-                semaEtStartTimeChanged[0] = Boolean.TRUE;
+                semaEtStartTimeChanged[0] = Boolean.TRUE;// 入力モードに入ったら送信オンに設定
+                inputStartTime.setCursorVisible(true);// カーソルを表示する
+            }
+        });
+        // エディター入力が終了したらカーソルを消す。
+        inputStartTime.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if(i == EditorInfo.IME_ACTION_DONE){
+                    inputStartTime.setCursorVisible(false);
+                }
+                return false;
             }
         });
         // 値を変更したら保存する
@@ -153,19 +184,29 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 if(!s1.equals(s2)) {
                     editorPrefs.putString("StartTime", s1);
                     editorPrefs.apply();
-                    // semaEtStartTimeChanged[0] = Boolean.TRUE;
                 }
             }
         });
 
-        // フィニッシュ時刻をクリックすると入力モードに入る
+        // 既定走行時間をクリックすると入力モードに入る
         inputDuration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
-                semaEtDurationChanged[0] = Boolean.TRUE;
+                semaEtDurationChanged[0] = Boolean.TRUE;// 入力モードに入ったら送信オンに設定
+                inputDuration.setCursorVisible(true);// カーソルを表示する
+            }
+        });
+        // エディター入力が終了したらカーソルを消す。
+        inputDuration.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if(i == EditorInfo.IME_ACTION_DONE){
+                    inputDuration.setCursorVisible(false);
+                }
+                return false;
             }
         });
         // 値を変更したら保存する
@@ -183,7 +224,6 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 if(!s1.equals(s2)){
                     editorPrefs.putString("Duration", s1);
                     editorPrefs.apply();
-                    // semaEtDurationChanged[0] = Boolean.TRUE;
                 }
             }
         });
@@ -195,6 +235,17 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
+                inputFullTank.setCursorVisible(true);// カーソルを表示する
+            }
+        });
+        // エディター入力が終了したらカーソルを消す。
+        inputFullTank.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if(i == EditorInfo.IME_ACTION_DONE){
+                    inputFullTank.setCursorVisible(false);
+                }
+                return false;
             }
         });
         // 値を変更したら保存する
@@ -219,6 +270,17 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
                 view.setFocusable(true);
                 view.setFocusableInTouchMode(true);
                 view.requestFocus();
+                inputAveLapTime.setCursorVisible(true);// カーソルを表示する
+            }
+        });
+        // エディター入力が終了したらカーソルを消す。
+        inputAveLapTime.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if(i == EditorInfo.IME_ACTION_DONE){
+                    inputAveLapTime.setCursorVisible(false);
+                }
+                return false;
             }
         });
         // 値を変更したら保存する
@@ -240,6 +302,46 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             }
         });
 
+        // メッセージをクリックすると入力モードに入る
+        inputMessage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.setFocusable(true);
+                view.setFocusableInTouchMode(true);
+                view.requestFocus();
+                semaEtMessageChanged[0] = Boolean.TRUE;// 入力モードに入ったら送信オンに設定
+                inputMessage.setCursorVisible(true);// カーソルを表示する
+            }
+        });
+        // エディター入力が終了したらカーソルを消す。
+        inputMessage.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if(i == EditorInfo.IME_ACTION_DONE){
+                    inputMessage.setCursorVisible(false);
+                }
+                return false;
+            }
+        });
+        // 値を変更したら保存する
+        inputMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count){
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                String s1 = s.toString();
+                String s2 = spPrefs.getString("Message", "メッセージ");
+                if(!s1.equals(s2)){
+                    editorPrefs.putString("Message", s1);
+                    editorPrefs.apply();
+                }
+            }
+        });
+
         // 定期的にGAS Web APIからstart/Race timeを取得
         final Handler handlerTimerTask = new Handler();
         final Context contextMainActivity = this; // 非同期スレッドからのUIアクセス用
@@ -250,28 +352,35 @@ public class MainActivity extends AppCompatActivity { // implements FC_AsyncTask
             public void run() {
                 handlerTimerTask.post( new Runnable() {
                     public void run() {
-                        // 端末アプリでスタート／フィニッシュ時刻が変更されたらWebにも反映する
-                        String sParams = "";
-                        if(semaEtStartTimeChanged[0]){
-                            sParams = sParams + "&statime="+inputStartTime.getText().toString();
-                            semaEtStartTimeChanged[0] = Boolean.FALSE;
+                        // 端末アプリでスタート／既定走行時間／メッセージが変更されたらWebにも反映する
+                        // 変更が無いパラメタはWebのデータで更新する
+                        // ただし入力中は更新しない
+                        if(!(inputStartTime.isCursorVisible() || inputDuration.isCursorVisible() || inputMessage.isCursorVisible())) {
+                            String sParams = "";
+                            if (semaEtStartTimeChanged[0]) {
+                                sParams = sParams + "&statime=" + inputStartTime.getText().toString();
+                                semaEtStartTimeChanged[0] = Boolean.FALSE;
+                            }
+                            if (semaEtDurationChanged[0]) {
+                                sParams = sParams + "&duration=" + inputDuration.getText().toString();
+                                semaEtDurationChanged[0] = Boolean.FALSE;
+                            }
+                            if (semaEtMessageChanged[0]) {
+                                sParams = sParams + "&message=" + inputMessage.getText().toString();
+                                semaEtMessageChanged[0] = Boolean.FALSE;
+                            }
+                            // 非同期タスクでwebにアクセス
+                            FC_AsyncTask task = new FC_AsyncTask(contextMainActivity);
+                            task.execute("https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam" + sParams);
                         }
-                        if(semaEtDurationChanged[0]){
-                            sParams = sParams + "&duration="+inputDuration.getText().toString();
-                            semaEtDurationChanged[0] = Boolean.FALSE;
-                        }
-                        // 非同期タスクでwebにアクセス
-                        FC_AsyncTask task = new FC_AsyncTask(contextMainActivity);
-                        task.execute("https://script.google.com/macros/s/AKfycbyvsoRq0HqbxcX_GXUgJdRclrwiiJ8GHcNMLzeEpMPuBN001Zs/exec?param=getparam"+sParams);
                     }
                 });
             }
-        },0,60000); //0秒後から60秒間隔で実行
+        },0,3000); //0秒後から1秒間隔で実行
 
     }//onCreate()
 
     private String getPackageAppVersion() {
-
         String version = null;
         try {
             String packageName = getPackageName();
